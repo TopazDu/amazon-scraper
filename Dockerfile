@@ -1,15 +1,17 @@
 FROM python:3.11-slim
 
-# 安装基本依赖和 Google Chrome
+# 安装基本依赖
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
+    unzip \
     gnupg2 \
-    && curl -sSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
+
+# 手动下载 Google Chrome
+RUN wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && dpkg -i google-chrome.deb || apt-get install -y -f \
+    && rm google-chrome.deb
 
 # 安装 ChromeDriver
 RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/') \
