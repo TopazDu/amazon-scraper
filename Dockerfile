@@ -11,11 +11,8 @@ RUN apt-get update && apt-get install -y \
 # 添加 Google Chrome 的 GPG 密钥
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 
-# 添加 Google Chrome 独立包
-RUN sh -c 'echo "deb [arch=amd64] https://dl.google.com/linux/chrome/debian/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
-
-# 更新并安装 Google Chrome
-RUN apt-get update && apt-get install -y google-chrome-stable
+# 更新并安装 Chromium 浏览器
+RUN apt-get update && apt-get install -y chromium
 
 # 安装 ChromeDriver
 RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/') \
