@@ -10,8 +10,11 @@ RUN apt-get update && apt-get install -y \
 
 # 手动下载 Google Chrome
 RUN wget -q -O google-chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
-    && dpkg -i google-chrome.deb || apt-get install -y -f \
+    && apt-get install -y ./google-chrome.deb \
     && rm google-chrome.deb
+
+# 验证 Chrome 是否正确安装
+RUN google-chrome --version
 
 # 安装 ChromeDriver
 RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/') \
