@@ -1,24 +1,26 @@
 FROM python:3.11-slim
 
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装 Poetry（最新版本）
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# 把 Poetry 添加到环境变量路径
+ENV PATH="/root/.local/bin:$PATH"
+
 # 设置工作目录
 WORKDIR /app
 
-# 复制项目文件到容器中
+# 复制项目文件到容器
 COPY . .
 
-# 安装系统依赖（为了构建依赖包）
-RUN apt-get update && apt-get install -y build-essential
+# 安装 Python 依赖（排除开发依赖）
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi --without dev
 
-# 安装 Poetry，并使用它安装依赖
-RUN pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --no-dev
-
-# 安装 FastAPI 和 Uvicorn，用于运行 api.py
-RUN pip install fastapi uvicorn
-
-# 暴露 FastAPI 监听的端口
-EXPOSE 8000
-
-# 启动 API 服务
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+# 运行项目，改成你的启动命令
+CMD ["python", "api.py"]
