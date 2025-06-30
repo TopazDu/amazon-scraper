@@ -1,8 +1,30 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+# 安装依赖
+RUN apt-get update && apt-get install -y \
+    curl \
+    make \
+    wget \
+    gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y curl make && rm -rf /var/lib/apt/lists/*
+# 添加 Google Chrome 的 GPG 密钥
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
+
+# 添加 Google Chrome 独立包
+RUN sh -c 'echo "deb [arch=amd64] https://dl.google.com/linux/chrome/debian/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
+
+# 更新并安装 Google Chrome
+RUN apt-get update && apt-get install -y google-chrome-stable
+
+# 安装 ChromeDriver
+RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | sed 's/\([0-9]*\)\.[0-9]*\.[0-9]*/\1/') \
+    && wget -N https://chromedriver.storage.googleapis.com/$CHROME_VERSION/chromedriver_linux64.zip \
+    && unzip chromedriver_linux64.zip -d /usr/local/bin/ \
+    && chmod +x /usr/local/bin/chromedriver \
+    && rm chromedriver_linux64.zip
+
+WORKDIR /app
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
@@ -12,9 +34,6 @@ COPY . .
 
 # 配置 Poetry 不创建虚拟环境
 RUN poetry config virtualenvs.create false
-
-# 将 FastAPI 和 Uvicorn 添加到依赖中
-RUN poetry add fastapi uvicorn
 
 # 安装所有依赖
 RUN poetry install --no-interaction --no-ansi
